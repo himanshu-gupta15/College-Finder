@@ -2,7 +2,17 @@
 
 import { useAuth } from "@/context/AuthContext";
 import { useComparison } from "@/context/ComparisonContext";
-import { Bookmark, Compass, GraduationCap, LogOut, Menu, Scale, User as UserIcon, X } from "lucide-react";
+import {
+  Bookmark,
+  Compass,
+  GraduationCap,
+  LogOut,
+  Menu,
+  Scale,
+  ShieldCheck,
+  User as UserIcon,
+  X,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -83,7 +93,20 @@ export default function Header() {
         {/* Auth CTA Area */}
         <div className="hidden md:flex items-center gap-3">
           {user ? (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5">
+              {user.role === "admin" && (
+                <Link
+                  href="/admin/colleges"
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    pathname.startsWith("/admin")
+                      ? "bg-slate-900 text-white shadow-xs"
+                      : "bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100"
+                  }`}
+                >
+                  <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
+                  <span>Admin Portal</span>
+                </Link>
+              )}
               <Link
                 href="/profile"
                 className="flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 py-1.5 pl-2.5 pr-3 text-sm font-medium text-slate-800 transition hover:bg-slate-100"
@@ -180,6 +203,16 @@ export default function Header() {
           <div className="border-t border-slate-100 pt-3">
             {user ? (
               <div className="space-y-2">
+                {user.role === "admin" && (
+                  <Link
+                    href="/admin/colleges"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-base font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100"
+                  >
+                    <ShieldCheck className="h-5 w-5 text-emerald-600" />
+                    Admin Portal
+                  </Link>
+                )}
                 <Link
                   href="/profile"
                   onClick={() => setMobileMenuOpen(false)}

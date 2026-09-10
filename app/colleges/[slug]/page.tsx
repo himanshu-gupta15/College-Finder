@@ -85,6 +85,8 @@ export default async function CollegeDetailPage({ params }: CollegePageProps) {
           <PlacementSection placements={college.placements as any} />
           <FacilitiesSection facilities={college.facilities as any} />
           <ReviewsSection
+            collegeId={college.id}
+            collegeName={college.name}
             reviews={college.reviews as any}
             collegeRating={college.rating}
             reviewCount={college.reviewCount}

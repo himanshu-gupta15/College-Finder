@@ -716,7 +716,7 @@ async function main() {
   await prisma.college.deleteMany({});
   await prisma.user.deleteMany({});
 
-  console.log("Creating standard demo user...");
+  console.log("Creating standard demo user & admin user...");
   const hashedPassword = await bcrypt.hash("Password123", 10);
   const demoUser = await prisma.user.create({
     data: {
@@ -724,6 +724,24 @@ async function main() {
       name: "Rahul Sharma",
       passwordHash: hashedPassword,
       role: "student",
+    },
+  });
+
+  const adminUser = await prisma.user.create({
+    data: {
+      email: "admin@collegefinder.com",
+      name: "Platform Administrator",
+      passwordHash: hashedPassword,
+      role: "admin",
+    },
+  });
+
+  const himanshuAdmin = await prisma.user.create({
+    data: {
+      email: "himanshugpt0005@gmail.com",
+      name: "himanshu gupta",
+      passwordHash: hashedPassword,
+      role: "admin",
     },
   });
 

@@ -1,5 +1,9 @@
 import prisma from "@/lib/prisma";
-import { CollegeQueryParams } from "@/lib/validations/college.schema";
+import {
+  CollegeCreateInput,
+  CollegeQueryParams,
+  CollegeUpdateInput,
+} from "@/lib/validations/college.schema";
 import { Prisma } from "@prisma/client";
 
 export class CollegeRepository {
@@ -206,6 +210,195 @@ export class CollegeRepository {
         },
       },
     });
+  }
+
+  async create(data: CollegeCreateInput) {
+    const { placement, facilities, ...collegeFields } = data;
+
+    return prisma.$transaction(async (tx) => {
+      const college = await tx.college.create({
+        data: {
+          ...collegeFields,
+          shortName: collegeFields.shortName || null,
+          affiliation: collegeFields.affiliation || null,
+          accreditation: collegeFields.accreditation || null,
+          website: collegeFields.website || null,
+          logoUrl: collegeFields.logoUrl || null,
+          bannerUrl: collegeFields.bannerUrl || null,
+        },
+      });
+
+      if (placement) {
+        await tx.placement.create({
+          data: {
+            collegeId: college.id,
+            year: placement.year,
+            highestPackage: placement.highestPackage,
+            averagePackage: placement.averagePackage,
+            medianPackage: placement.medianPackage || null,
+            placementRate: placement.placementRate,
+            topRecruiters: placement.topRecruiters,
+          },
+        });
+      }
+
+      if (facilities && facilities.length > 0) {
+        await tx.facility.createMany({
+          data: facilities.map((name) => ({
+            collegeId: college.id,
+            name,
+          })),
+        });
+      }
+
+      return tx.college.findUnique({
+        where: { id: college.id },
+        include: {
+          placements: { orderBy: { year: "desc" } },
+          facilities: true,
+          courses: { include: { course: true } },
+        },
+      });
+    }, { maxWait: 15000, timeout: 30000 });
+  }
+
+  async update(id: string, data: CollegeUpdateInput) {
+    const { placement, facilities, ...collegeFields } = data;
+
+    return prisma.$transaction(async (tx) => {
+      await tx.college.update({
+        where: { id },
+        data: {
+          ...collegeFields,
+          shortName: collegeFields.shortName || null,
+          affiliation: collegeFields.affiliation || null,
+          accreditation: collegeFields.accreditation || null,
+          website: collegeFields.website || null,
+          logoUrl: collegeFields.logoUrl || null,
+          bannerUrl: collegeFields.bannerUrl || null,
+        },
+      });
+
+      if (placement) {
+        const existingPlacement = await tx.placement.findFirst({
+          where: { collegeId: id, year: placement.year },
+        });
+
+        if (existingPlacement) {
+          await tx.placement.update({
+            where: { id: existingPlacement.id },
+            data: {
+              highestPackage: placement.highestPackage,
+              averagePackage: placement.averagePackage,
+              medianPackage: placement.medianPackage || null,
+              placementRate: placement.placementRate,
+              topRecruiters: placement.topRecruiters,
+            },
+          });
+        } else {
+          await tx.placement.create({
+            data: {
+              collegeId: id,
+              year: placement.year,
+              highestPackage: placement.highestPackage,
+              averagePackage: placement.averagePackage,
+              medianPackage: placement.medianPackage || null,
+              placementRate: placement.placementRate,
+              topRecruiters: placement.topRecruiters,
+            },
+          });
+        }
+      }
+
+      if (facilities) {
+        await tx.facility.deleteMany({
+          where: { collegeId: id },
+        });
+        if (facilities.length > 0) {
+          await tx.facility.createMany({
+            data: facilities.map((name) => ({
+              collegeId: id,
+              name,
+            })),
+          });
+        }
+      }
+
+      return tx.college.findUnique({
+        where: { id },
+        include: {
+          placements: { orderBy: { year: "desc" } },
+          facilities: true,
+          courses: { include: { course: true } },
+        },
+      });
+    }, { maxWait: 15000, timeout: 30000 });
+  }
+
+  async delete(id: string) {
+    return prisma.college.delete({
+      where: { id },
+    });
+  }
+
+  async findAdminColleges(params: {
+    search?: string;
+    collegeType?: string;
+    state?: string;
+    page?: number;
+    limit?: number;
+  }) {
+    const { search, collegeType, state, page = 1, limit = 15 } = params;
+    const where: Prisma.CollegeWhereInput = {};
+
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: "insensitive" } },
+        { shortName: { contains: search, mode: "insensitive" } },
+        { city: { contains: search, mode: "insensitive" } },
+        { state: { contains: search, mode: "insensitive" } },
+      ];
+    }
+
+    if (collegeType) {
+      where.collegeType = { equals: collegeType, mode: "insensitive" };
+    }
+
+    if (state) {
+      where.state = { equals: state, mode: "insensitive" };
+    }
+
+    const skip = (page - 1) * limit;
+
+    const [total, colleges, ownershipGroups] = await Promise.all([
+      prisma.college.count({ where }),
+      prisma.college.findMany({
+        where,
+        orderBy: { updatedAt: "desc" },
+        skip,
+        take: limit,
+        include: {
+          placements: {
+            orderBy: { year: "desc" },
+            take: 1,
+          },
+          facilities: true,
+          _count: {
+            select: {
+              courses: true,
+              reviews: true,
+              savedBy: true,
+            },
+          },
+        },
+      }),
+      prisma.college.groupBy({
+        by: ["ownership"],
+        _count: { id: true },
+      }),
+    ]);
+
+    return { total, colleges, page, limit, ownershipGroups };
   }
 
   async getFilterOptions() {

@@ -53,4 +53,16 @@ export async function getSessionUser(req?: NextRequest): Promise<TokenPayload | 
   return verifyToken(token);
 }
 
+export async function requireAdmin(req?: NextRequest): Promise<TokenPayload> {
+  const user = await getSessionUser(req);
+  if (!user) {
+    throw new Error("UNAUTHORIZED");
+  }
+  if (user.role !== "admin") {
+    throw new Error("FORBIDDEN");
+  }
+  return user;
+}
+
 export { COOKIE_NAME };
+

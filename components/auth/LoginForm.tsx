@@ -43,12 +43,17 @@ export default function LoginForm() {
     setPassword("Password123");
   };
 
+  const handleFillAdminDemo = () => {
+    setEmail("admin@collegefinder.com");
+    setPassword("Password123");
+  };
+
   return (
     <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
       <div className="text-center mb-6">
         <h1 className="text-2xl font-bold text-slate-900">Welcome Back</h1>
         <p className="text-xs text-slate-500 mt-1">
-          Sign in to view and manage your saved college shortlists
+          Sign in to view and manage college profiles and shortlists
         </p>
       </div>
 
@@ -84,9 +89,16 @@ export default function LoginForm() {
           <button
             type="button"
             onClick={handleFillDemo}
-            className="font-semibold text-emerald-600 hover:text-emerald-700 hover:underline"
+            className="font-semibold text-emerald-600 hover:text-emerald-700 hover:underline cursor-pointer"
           >
-            ⚡ Auto-fill Demo Account
+            ⚡ Student Demo
+          </button>
+          <button
+            type="button"
+            onClick={handleFillAdminDemo}
+            className="font-semibold text-indigo-600 hover:text-indigo-700 hover:underline cursor-pointer"
+          >
+            🛡️ Admin Demo
           </button>
         </div>
 

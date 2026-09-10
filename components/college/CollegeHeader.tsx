@@ -1,9 +1,24 @@
 "use client";
 
+import { useAuth } from "@/context/AuthContext";
 import { useComparison } from "@/context/ComparisonContext";
 import { useSavedColleges } from "@/context/SavedCollegesContext";
-import { Award, Bookmark, Check, ExternalLink, Globe, IndianRupee, MapPin, Scale, Share2, Star, TrendingUp } from "lucide-react";
+import {
+  Award,
+  Bookmark,
+  Check,
+  ExternalLink,
+  Globe,
+  IndianRupee,
+  MapPin,
+  Pencil,
+  Scale,
+  Share2,
+  Star,
+  TrendingUp,
+} from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
 
 interface CollegeHeaderProps {
@@ -35,6 +50,7 @@ interface CollegeHeaderProps {
 }
 
 export default function CollegeHeader({ college }: CollegeHeaderProps) {
+  const { user } = useAuth();
   const { isSaved, toggleSave } = useSavedColleges();
   const { addToCompare, removeFromCompare, isInComparison } = useComparison();
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -154,8 +170,18 @@ export default function CollegeHeader({ college }: CollegeHeaderProps) {
             </div>
           </div>
 
-          {/* Action Buttons: Compare, Save, Share */}
-          <div className="flex items-center gap-2">
+          {/* Action Buttons: Edit (Admin), Compare, Save, Share */}
+          <div className="flex flex-wrap items-center gap-2">
+            {user?.role === "admin" && (
+              <Link
+                href={`/admin/colleges/${college.id}/edit`}
+                className="flex items-center gap-1.5 rounded-xl border border-emerald-300 bg-emerald-50 px-3.5 py-2.5 text-sm font-bold text-emerald-800 hover:bg-emerald-100 transition shadow-xs"
+              >
+                <Pencil className="h-4 w-4 text-emerald-700" />
+                <span>Edit College (Admin)</span>
+              </Link>
+            )}
+
             <button
               onClick={handleCompareClick}
               className={`flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold transition ${
