@@ -1,0 +1,153 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String         @id @default(uuid())
+  email         String         @unique
+  passwordHash  String
+  name          String
+  role          String         @default("student")
+  savedColleges SavedCollege[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@index([email])
+}
+
+model College {
+  id              String          @id @default(uuid())
+  slug            String          @unique
+  name            String
+  shortName       String?
+  overview        String          @db.Text
+  establishedYear Int
+  collegeType     String // Engineering, Management, Medical, Arts & Science, Law, Design
+  ownership       String // Public, Private
+  affiliation     String?
+  accreditation   String? // NAAC A++, NIRF #1, etc.
+  rating          Float           @default(4.0)
+  reviewCount     Int             @default(0)
+  minFees         Int // Annual fees minimum in INR
+  maxFees         Int // Annual fees maximum in INR
+  city            String
+  state           String
+  address         String
+  website         String?
+  logoUrl         String?
+  bannerUrl       String?
+  courses         CollegeCourse[]
+  placements      Placement[]
+  reviews         Review[]
+  facilities      Facility[]
+  savedBy         SavedCollege[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@index([slug])
+  @@index([city])
+  @@index([state])
+  @@index([collegeType])
+  @@index([ownership])
+  @@index([rating])
+  @@index([minFees])
+  @@index([state, city])
+  @@index([collegeType, rating])
+}
+
+model Course {
+  id             String          @id @default(uuid())
+  code           String          @unique
+  name           String
+  degree         String // B.Tech, M.Tech, MBA, MBBS, B.Des, BA, B.Sc
+  stream         String // Engineering, Management, Medical, Design, Law, Arts
+  durationYears  Int             @default(4)
+  collegeCourses CollegeCourse[]
+
+  @@index([degree])
+  @@index([stream])
+}
+
+model CollegeCourse {
+  id          String   @id @default(uuid())
+  collegeId   String
+  courseId    String
+  annualFees  Int
+  eligibility String
+  seats       Int      @default(60)
+  courseType  String   @default("Full-Time")
+  college     College  @relation(fields: [collegeId], references: [id], onDelete: Cascade)
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([collegeId, courseId])
+  @@index([collegeId])
+  @@index([courseId])
+  @@index([annualFees])
+}
+
+model Placement {
+  id             String   @id @default(uuid())
+  collegeId      String
+  year           Int
+  highestPackage Float // LPA (e.g. 54.0)
+  averagePackage Float // LPA (e.g. 19.5)
+  medianPackage  Float? // LPA (e.g. 16.0)
+  placementRate  Float    @default(90.0) // Percentage
+  topRecruiters  String // Comma separated or JSON string
+  college        College  @relation(fields: [collegeId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
+
+  @@index([collegeId])
+  @@index([year])
+  @@index([averagePackage])
+}
+
+model Review {
+  id              String   @id @default(uuid())
+  collegeId       String
+  userId          String?
+  reviewerName    String
+  rating          Float
+  title           String
+  pros            String   @db.Text
+  cons            String   @db.Text
+  courseName      String?
+  batchYear       String?
+  verifiedStudent Boolean  @default(true)
+  college         College  @relation(fields: [collegeId], references: [id], onDelete: Cascade)
+  createdAt       DateTime @default(now())
+
+  @@index([collegeId])
+  @@index([rating])
+}
+
+model Facility {
+  id          String  @id @default(uuid())
+  collegeId   String
+  name        String
+  icon        String?
+  description String?
+  college     College @relation(fields: [collegeId], references: [id], onDelete: Cascade)
+
+  @@index([collegeId])
+}
+
+model SavedCollege {
+  id        String   @id @default(uuid())
+  userId    String
+  collegeId String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  college   College  @relation(fields: [collegeId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, collegeId])
+  @@index([userId])
+  @@index([collegeId])
+}
