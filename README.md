@@ -330,3 +330,4 @@ Every endpoint returns a standardized JSON envelope:
 1. **Edge Caching**: Add Cloudflare or Vercel Edge caching on `GET /api/colleges/[slug]` with `stale-while-revalidate=86400`.
 2. **Read Replicas**: Route discovery queries to PostgreSQL read replicas using Prisma Accelerate or connection pooling via PgBouncer.
 3. **Redis Query Caching**: Cache common filter permutations (e.g. `/api/colleges?collegeType=Engineering&sort=rating_desc`) with a 10-minute TTL.
+# College-Finder
