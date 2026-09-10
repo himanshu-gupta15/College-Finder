@@ -331,3 +331,4 @@ Every endpoint returns a standardized JSON envelope:
 2. **Read Replicas**: Route discovery queries to PostgreSQL read replicas using Prisma Accelerate or connection pooling via PgBouncer.
 3. **Redis Query Caching**: Cache common filter permutations (e.g. `/api/colleges?collegeType=Engineering&sort=rating_desc`) with a 10-minute TTL.
 # College-Finder
+# College-Finder
