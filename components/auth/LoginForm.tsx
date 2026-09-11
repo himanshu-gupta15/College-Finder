@@ -3,7 +3,7 @@
 import Button from "@/components/common/Button";
 import Input from "@/components/common/Input";
 import { useAuth } from "@/context/AuthContext";
-import { AlertCircle, CheckCircle2, Lock, Mail } from "lucide-react";
+import { AlertCircle, Lock, Mail } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
@@ -36,16 +36,6 @@ export default function LoginForm() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleFillDemo = () => {
-    setEmail("student@example.com");
-    setPassword("Password123");
-  };
-
-  const handleFillAdminDemo = () => {
-    setEmail("admin@collegefinder.com");
-    setPassword("Password123");
   };
 
   return (
@@ -84,23 +74,6 @@ export default function LoginForm() {
           required
           icon={<Lock className="h-4 w-4" />}
         />
-
-        <div className="flex items-center justify-between text-xs pt-1">
-          <button
-            type="button"
-            onClick={handleFillDemo}
-            className="font-semibold text-emerald-600 hover:text-emerald-700 hover:underline cursor-pointer"
-          >
-            ⚡ Student Demo
-          </button>
-          <button
-            type="button"
-            onClick={handleFillAdminDemo}
-            className="font-semibold text-indigo-600 hover:text-indigo-700 hover:underline cursor-pointer"
-          >
-            🛡️ Admin Demo
-          </button>
-        </div>
 
         <Button
           type="submit"
