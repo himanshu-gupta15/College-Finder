@@ -183,32 +183,6 @@ sequenceDiagram
 
 Handles student registration and login with zero vendor lock-in, bcrypt salt hashing, and tamper-proof HTTP-only cookie transport.
 
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Student
-    participant UI as Login / Signup Form
-    participant AuthAPI as /api/auth/login or signup
-    participant AuthService as AuthService
-    participant DB as PostgreSQL
-
-    Student->>UI: Enters Email and Password
-    UI->>AuthAPI: POST /api/auth/login { email, password }
-    AuthAPI->>AuthAPI: Validate input format with Zod
-    AuthAPI->>AuthService: authenticate(email, password)
-    AuthService->>DB: Find user by email
-    DB-->>AuthService: User record with passwordHash
-    AuthService->>AuthService: bcrypt.compare(password, passwordHash)
-    alt Credentials Invalid
-        AuthService-->>AuthAPI: Throw InvalidCredentialsError
-        AuthAPI-->>UI: 401 Unauthorized { success: false, error: ... }
-    else Credentials Valid
-        AuthService->>AuthService: Sign JWT ({ userId, email, role })
-        AuthService-->>AuthAPI: Token & Sanitized User Profile
-        AuthAPI-->>UI: Set-Cookie: token=...; HttpOnly; SameSite=Lax; Path=/
-        UI-->>Student: Authenticated state, redirects to saved colleges / profile
-    end
-```
 
 - **Password Security**: Passwords are encrypted using `bcryptjs` with 10 salt rounds before database insertion. Plaintext passwords never touch logs or disk.
 - **XSS Protection**: JWTs are stored exclusively in `HttpOnly` cookies, making them inaccessible to client-side scripts.
