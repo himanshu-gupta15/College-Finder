@@ -280,18 +280,7 @@ sequenceDiagram
 - **Node.js**: v18 or higher (tested on Node v22 / v24)
 - **PostgreSQL**: Native local PostgreSQL server (Homebrew/apt) OR Cloud PostgreSQL (Neon, Supabase, Railway)
 
-### 2. Environment Configuration
-Create a `.env` file in the project root:
-```bash
-# Local PostgreSQL instance:
-DATABASE_URL="postgresql://postgres@localhost:5434/collegedb?schema=public"
 
-# OR Cloud PostgreSQL:
-# DATABASE_URL="postgresql://user:password@ep-cool-db.us-east-2.aws.neon.tech/collegedb?sslmode=require"
-
-JWT_SECRET="your_secure_random_jwt_secret_key_at_least_32_characters_long"
-NEXT_PUBLIC_APP_URL="http://localhost:3000"
-```
 
 ### 3. Database Initialization & Seeding
 ```bash
