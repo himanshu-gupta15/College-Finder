@@ -132,11 +132,11 @@ export default function CollegeHeader({ college }: CollegeHeaderProps) {
       </div>
 
       {/* Main Header Info Area */}
-      <div className="relative px-6 pb-6 pt-0 sm:px-8">
+      <div className="relative px-4 pb-6 pt-0 sm:px-8">
         {/* Floating Logo */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 -mt-16 sm:-mt-20 mb-4">
-          <div className="flex items-end gap-4">
-            <div className="relative h-24 w-24 sm:h-28 sm:w-28 shrink-0 overflow-hidden rounded-2xl border-4 border-white bg-white shadow-md">
+          <div className="flex items-end gap-3 sm:gap-4">
+            <div className="relative h-20 w-20 sm:h-28 sm:w-28 shrink-0 overflow-hidden rounded-2xl border-4 border-white bg-white shadow-md">
               {college.logoUrl ? (
                 <Image
                   src={college.logoUrl}
@@ -227,7 +227,7 @@ export default function CollegeHeader({ college }: CollegeHeaderProps) {
 
         {/* Title and Detailed Subtitle */}
         <div className="mt-3">
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+          <h1 className="text-xl sm:text-3xl font-extrabold text-slate-900 tracking-tight break-words">
             {college.name}
           </h1>
 

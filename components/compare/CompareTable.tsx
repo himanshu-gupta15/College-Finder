@@ -144,6 +144,16 @@ export default function CompareTable({ initialColleges }: CompareTableProps) {
         </div>
       </div>
 
+      {/* Mobile Swipe / Horizontal Scroll Indicator */}
+      <div className="flex sm:hidden items-center justify-between text-[11px] text-slate-500 px-1 py-1 font-medium bg-slate-50 rounded-xl border border-slate-200">
+        <span className="flex items-center gap-1.5 pl-2">
+          <span>👈 Swipe horizontally to view full matrix 👉</span>
+        </span>
+        <span className="text-[10px] text-emerald-700 bg-emerald-100 font-bold px-2 py-0.5 rounded-md mr-1">
+          Scrollable
+        </span>
+      </div>
+
       {/* Comparison Table Container */}
       <div className="overflow-x-auto rounded-3xl border border-slate-200 bg-white shadow-xs custom-scrollbar">
         <table className="w-full min-w-[700px] border-collapse text-left text-sm">

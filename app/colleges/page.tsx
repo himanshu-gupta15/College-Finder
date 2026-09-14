@@ -20,6 +20,18 @@ function CollegeDiscoveryContent() {
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
 
+  // Lock background scroll when mobile filter drawer is open
+  useEffect(() => {
+    if (mobileFilterOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileFilterOpen]);
+
   // Active query parameters
   const page = Number(searchParams.get("page")) || 1;
   const sort = searchParams.get("sort") || "rating_desc";
