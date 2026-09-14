@@ -19,14 +19,34 @@ export const collegeQuerySchema = z.object({
 
 export type CollegeQueryParams = z.infer<typeof collegeQuerySchema>;
 
-export const placementSchema = z.object({
-  year: z.coerce.number().int().min(2000).max(2035).default(() => new Date().getFullYear()),
-  highestPackage: z.coerce.number().min(0, "Highest package must be >= 0").default(0),
-  averagePackage: z.coerce.number().min(0, "Average package must be >= 0").default(0),
-  medianPackage: z.coerce.number().min(0).optional().nullable(),
-  placementRate: z.coerce.number().min(0).max(100, "Placement rate must be <= 100%").default(90),
-  topRecruiters: z.string().default(""),
-});
+const optionalUrlSchema = z
+  .string()
+  .trim()
+  .transform((val) => {
+    if (!val) return val;
+    return /^https?:\/\//i.test(val) ? val : `https://${val}`;
+  })
+  .pipe(z.string().url("Invalid URL format"))
+  .optional()
+  .or(z.literal(""))
+  .nullable();
+
+export const placementSchema = z
+  .object({
+    year: z.coerce.number().int().min(2000).max(2035).default(() => new Date().getFullYear()),
+    highestPackage: z.coerce.number().min(0, "Highest package must be >= 0").default(0),
+    averagePackage: z.coerce.number().min(0, "Average package must be >= 0").default(0),
+    medianPackage: z.coerce.number().min(0).optional().nullable(),
+    placementRate: z.coerce.number().min(0).max(100, "Placement rate must be <= 100%").default(90),
+    topRecruiters: z.string().default(""),
+  })
+  .refine(
+    (data) => data.highestPackage === 0 || data.averagePackage <= data.highestPackage,
+    {
+      message: "Average package cannot exceed Highest package",
+      path: ["averagePackage"],
+    }
+  );
 
 export const collegeCreateSchema = z
   .object({
@@ -56,9 +76,9 @@ export const collegeCreateSchema = z
     city: z.string().trim().min(2, "City is required"),
     state: z.string().trim().min(2, "State is required"),
     address: z.string().trim().min(5, "Address must be at least 5 characters"),
-    website: z.string().trim().url("Invalid website URL").optional().or(z.literal("")).nullable(),
-    logoUrl: z.string().trim().url("Invalid logo URL").optional().or(z.literal("")).nullable(),
-    bannerUrl: z.string().trim().url("Invalid banner URL").optional().or(z.literal("")).nullable(),
+    website: optionalUrlSchema,
+    logoUrl: optionalUrlSchema,
+    bannerUrl: optionalUrlSchema,
     placement: placementSchema.optional().nullable(),
     facilities: z.array(z.string()).default([]),
   })

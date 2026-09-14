@@ -22,6 +22,14 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 
+function normalizeUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  const trimmed = url.trim();
+  if (!trimmed) return null;
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  return "https://" + trimmed;
+}
+
 const STANDARD_FACILITIES = [
   "Wi-Fi Campus",
   "Central Library",
@@ -257,6 +265,12 @@ export default function AdminCollegeForm({
       newErrors.maxFees = "Maximum fee cannot be less than Minimum fee.";
     }
 
+    const highPkg = Number(highestPackage);
+    const avgPkg = Number(averagePackage);
+    if (!isNaN(highPkg) && !isNaN(avgPkg) && highPkg > 0 && avgPkg > highPkg) {
+      newErrors.averagePackage = "Average package cannot exceed Highest package.";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -293,9 +307,9 @@ export default function AdminCollegeForm({
       city: city.trim(),
       state: state.trim(),
       address: address.trim(),
-      website: website.trim() || null,
-      logoUrl: logoUrl.trim() || null,
-      bannerUrl: bannerUrl.trim() || null,
+      website: normalizeUrl(website),
+      logoUrl: normalizeUrl(logoUrl),
+      bannerUrl: normalizeUrl(bannerUrl),
       placement: {
         year: Number(placementYear),
         highestPackage: Number(highestPackage),
@@ -1025,6 +1039,9 @@ export default function AdminCollegeForm({
                   placeholder="e.g. 21.8"
                   className="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-2 focus:border-emerald-500 focus:ring-emerald-100"
                 />
+                {errors.averagePackage && (
+                  <p className="text-xs text-rose-500 mt-1 font-medium">{errors.averagePackage}</p>
+                )}
               </div>
 
               {/* Placement Rate */}
