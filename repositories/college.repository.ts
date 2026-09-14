@@ -25,13 +25,28 @@ export class CollegeRepository {
 
     const where: Prisma.CollegeWhereInput = {};
 
-    // Search query matches name, city, state, or shortName
+    // Search query matches name, shortName, city, state, collegeType, affiliation, or courses
     if (search) {
       where.OR = [
         { name: { contains: search, mode: "insensitive" } },
         { shortName: { contains: search, mode: "insensitive" } },
         { city: { contains: search, mode: "insensitive" } },
         { state: { contains: search, mode: "insensitive" } },
+        { collegeType: { contains: search, mode: "insensitive" } },
+        { affiliation: { contains: search, mode: "insensitive" } },
+        {
+          courses: {
+            some: {
+              course: {
+                OR: [
+                  { name: { contains: search, mode: "insensitive" } },
+                  { degree: { contains: search, mode: "insensitive" } },
+                  { code: { contains: search, mode: "insensitive" } },
+                ],
+              },
+            },
+          },
+        },
       ];
     }
 
@@ -79,6 +94,45 @@ export class CollegeRepository {
       };
     }
 
+    const skip = (page - 1) * limit;
+
+    if (sort === "package_desc") {
+      const [total, allColleges] = await Promise.all([
+        prisma.college.count({ where }),
+        prisma.college.findMany({
+          where,
+          include: {
+            courses: {
+              take: 4,
+              include: {
+                course: true,
+              },
+            },
+            placements: {
+              orderBy: { year: "desc" },
+              take: 1,
+            },
+            _count: {
+              select: {
+                courses: true,
+                reviews: true,
+              },
+            },
+          },
+        }),
+      ]);
+
+      allColleges.sort((a, b) => {
+        const pkgA = a.placements[0]?.highestPackage ?? 0;
+        const pkgB = b.placements[0]?.highestPackage ?? 0;
+        if (pkgB !== pkgA) return pkgB - pkgA;
+        return b.rating - a.rating;
+      });
+
+      const colleges = allColleges.slice(skip, skip + limit);
+      return { total, colleges, page, limit };
+    }
+
     // Determine sorting
     let orderBy: Prisma.CollegeOrderByWithRelationInput[] = [];
     switch (sort) {
@@ -91,16 +145,11 @@ export class CollegeRepository {
       case "rating_asc":
         orderBy = [{ rating: "asc" }, { name: "asc" }];
         break;
-      case "package_desc":
-        orderBy = [{ rating: "desc" }, { minFees: "asc" }];
-        break;
       case "rating_desc":
       default:
         orderBy = [{ rating: "desc" }, { reviewCount: "desc" }];
         break;
     }
-
-    const skip = (page - 1) * limit;
 
     const [total, colleges] = await Promise.all([
       prisma.college.count({ where }),
@@ -401,7 +450,11 @@ export class CollegeRepository {
     return { total, colleges, page, limit, ownershipGroups };
   }
 
-  async getFilterOptions() {
+  async getFilterOptions(state?: string) {
+    const cityWhere: Prisma.CollegeWhereInput = state
+      ? { state: { equals: state, mode: "insensitive" } }
+      : {};
+
     const [states, cities, types] = await Promise.all([
       prisma.college.findMany({
         select: { state: true },
@@ -409,6 +462,7 @@ export class CollegeRepository {
         orderBy: { state: "asc" },
       }),
       prisma.college.findMany({
+        where: cityWhere,
         select: { city: true },
         distinct: ["city"],
         orderBy: { city: "asc" },

@@ -105,8 +105,8 @@ export class CollegeService {
     return collegeRepository.findMultiple(limitedIdentifiers);
   }
 
-  async getFilterOptions() {
-    return collegeRepository.getFilterOptions();
+  async getFilterOptions(state?: string) {
+    return collegeRepository.getFilterOptions(state);
   }
 }
 

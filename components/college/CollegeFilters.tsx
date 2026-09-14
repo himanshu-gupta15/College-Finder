@@ -39,19 +39,28 @@ export default function CollegeFilters({
   const [selectedRating, setSelectedRating] = useState(searchParams.get("minRating") || "");
   const [maxFees, setMaxFees] = useState(searchParams.get("maxFees") || "");
 
-  // Load distinct filter options if not provided
+  // Load distinct filter options and update cities when selectedState changes
   useEffect(() => {
-    if (!initialOptions) {
-      fetch("/api/colleges/filters")
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.success && data.data) {
-            setOptions(data.data);
-          }
-        })
-        .catch(() => {});
-    }
-  }, [initialOptions]);
+    if (initialOptions && !selectedState) return;
+
+    const url = selectedState
+      ? `/api/colleges/filters?state=${encodeURIComponent(selectedState)}`
+      : "/api/colleges/filters";
+
+    fetch(url)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.data) {
+          setOptions((prev) => ({
+            ...prev,
+            states: data.data.states?.length ? data.data.states : prev.states,
+            cities: data.data.cities || [],
+            collegeTypes: data.data.collegeTypes?.length ? data.data.collegeTypes : prev.collegeTypes,
+          }));
+        }
+      })
+      .catch(() => {});
+  }, [selectedState, initialOptions]);
 
   // Keep in sync if search params change externally
   useEffect(() => {
