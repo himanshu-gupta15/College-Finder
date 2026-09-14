@@ -1,4 +1,4 @@
-import { apiError, apiSuccess } from "@/lib/api-response";
+import { apiSuccess, handleApiError } from "@/lib/api-response";
 import { requireAdmin } from "@/lib/auth";
 import { collegeCreateSchema } from "@/lib/validations/college.schema";
 import { collegeService } from "@/services/college.service";
@@ -32,15 +32,8 @@ export async function GET(req: NextRequest) {
         ownershipStats: result.ownershipStats,
       }
     );
-  } catch (error: any) {
-    if (error.message === "UNAUTHORIZED") {
-      return apiError("UNAUTHORIZED", "Authentication required", 401);
-    }
-    if (error.message === "FORBIDDEN") {
-      return apiError("FORBIDDEN", "Admin privileges required", 403);
-    }
-    console.error("Error in GET /api/admin/colleges:", error);
-    return apiError("INTERNAL_SERVER_ERROR", "Failed to retrieve colleges", 500);
+  } catch (error) {
+    return handleApiError(error, "Failed to retrieve colleges");
   }
 }
 
@@ -49,34 +42,11 @@ export async function POST(req: NextRequest) {
     await requireAdmin(req);
 
     const body = await req.json();
-    const validation = collegeCreateSchema.safeParse(body);
+    const validatedData = collegeCreateSchema.parse(body);
 
-    if (!validation.success) {
-      return apiError(
-        "VALIDATION_ERROR",
-        "Invalid college data",
-        400,
-        validation.error.flatten().fieldErrors
-      );
-    }
-
-    const newCollege = await collegeService.createCollege(validation.data);
+    const newCollege = await collegeService.createCollege(validatedData);
     return apiSuccess(newCollege, "College created successfully", 201);
-  } catch (error: any) {
-    if (error.message === "UNAUTHORIZED") {
-      return apiError("UNAUTHORIZED", "Authentication required", 401);
-    }
-    if (error.message === "FORBIDDEN") {
-      return apiError("FORBIDDEN", "Admin privileges required", 403);
-    }
-    if (error.message === "SLUG_ALREADY_EXISTS") {
-      return apiError(
-        "SLUG_ALREADY_EXISTS",
-        "A college with this URL slug already exists. Please pick a unique slug.",
-        409
-      );
-    }
-    console.error("Error in POST /api/admin/colleges:", error);
-    return apiError("INTERNAL_SERVER_ERROR", "Failed to create college", 500);
+  } catch (error) {
+    return handleApiError(error, "Failed to create college");
   }
 }

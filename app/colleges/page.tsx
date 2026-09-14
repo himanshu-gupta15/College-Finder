@@ -4,7 +4,7 @@ import CollegeCard from "@/components/college/CollegeCard";
 import CollegeFilters from "@/components/college/CollegeFilters";
 import Pagination from "@/components/common/Pagination";
 import { CollegeCardSkeleton, CollegeListSkeleton } from "@/components/common/Skeleton";
-import { ArrowUpDown, Building, Filter, Search, SlidersHorizontal, X } from "lucide-react";
+import { AlertCircle, ArrowUpDown, Building, Filter, RotateCcw, Search, SlidersHorizontal, X } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 
@@ -17,6 +17,8 @@ function CollegeDiscoveryContent() {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
   // Active query parameters
   const page = Number(searchParams.get("page")) || 1;
@@ -33,24 +35,30 @@ function CollegeDiscoveryContent() {
   useEffect(() => {
     let isMounted = true;
     setLoading(true);
+    setFetchError(null);
 
     const query = new URLSearchParams(searchParams.toString());
     if (!query.has("limit")) query.set("limit", "12");
 
     fetch(`/api/colleges?${query.toString()}`)
-      .then((res) => res.json())
-      .then((res) => {
+      .then(async (res) => {
+        const data = await res.json();
         if (!isMounted) return;
-        if (res.success && Array.isArray(res.data)) {
-          setColleges(res.data);
-          if (res.pagination) {
-            setTotal(res.pagination.total);
-            setTotalPages(res.pagination.totalPages);
+        if (!res.ok || !data.success) {
+          throw new Error(data.error?.message || "Failed to retrieve colleges from directory");
+        }
+        if (Array.isArray(data.data)) {
+          setColleges(data.data);
+          if (data.pagination) {
+            setTotal(data.pagination.total);
+            setTotalPages(data.pagination.totalPages);
           }
         }
       })
       .catch((err) => {
+        if (!isMounted) return;
         console.error("Failed to fetch colleges:", err);
+        setFetchError(err.message || "Unable to connect to college directory service");
       })
       .finally(() => {
         if (isMounted) setLoading(false);
@@ -59,7 +67,7 @@ function CollegeDiscoveryContent() {
     return () => {
       isMounted = false;
     };
-  }, [searchParams]);
+  }, [searchParams, reloadKey]);
 
   const handleSortChange = (newSort: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -191,6 +199,27 @@ function CollegeDiscoveryContent() {
               {Array.from({ length: 6 }).map((_, i) => (
                 <CollegeCardSkeleton key={i} />
               ))}
+            </div>
+          ) : fetchError ? (
+            <div className="rounded-3xl border border-rose-200 bg-rose-50/50 p-12 text-center space-y-4">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-100 text-rose-600 mb-2">
+                <AlertCircle className="h-7 w-7" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-slate-900">
+                  Failed to Load Colleges
+                </h3>
+                <p className="mx-auto mt-1 max-w-md text-xs text-slate-600 leading-relaxed">
+                  {fetchError}. Please check your connection or try refreshing the directory.
+                </p>
+              </div>
+              <button
+                onClick={() => setReloadKey((k) => k + 1)}
+                className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-emerald-700 transition cursor-pointer"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                <span>Retry Search</span>
+              </button>
             </div>
           ) : colleges.length > 0 ? (
             <>

@@ -1,4 +1,4 @@
-import { apiError, apiSuccess } from "@/lib/api-response";
+import { apiError, apiSuccess, handleApiError } from "@/lib/api-response";
 import { collegeService } from "@/services/college.service";
 import { NextRequest } from "next/server";
 
@@ -23,14 +23,13 @@ export async function GET(
     if (!college) {
       return apiError(
         "COLLEGE_NOT_FOUND",
-        `College with identifier '${slug}' was not found`,
+        "College with identifier '" + slug + "' was not found",
         404
       );
     }
 
     return apiSuccess(college, "College details retrieved successfully");
   } catch (error) {
-    console.error("Error in GET /api/colleges/[slug]:", error);
-    return apiError("INTERNAL_SERVER_ERROR", "Failed to retrieve college details", 500);
+    return handleApiError(error, "Failed to retrieve college details");
   }
 }

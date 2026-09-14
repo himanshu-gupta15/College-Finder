@@ -1,4 +1,4 @@
-import { apiError, apiSuccess } from "@/lib/api-response";
+import { apiSuccess, handleApiError } from "@/lib/api-response";
 import { getSessionUser } from "@/lib/auth";
 import { reviewCreateSchema } from "@/lib/validations/college.schema";
 import { reviewService } from "@/services/review.service";
@@ -9,17 +9,9 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const session = await getSessionUser(req);
 
-    const validation = reviewCreateSchema.safeParse(body);
-    if (!validation.success) {
-      return apiError(
-        "VALIDATION_ERROR",
-        "Invalid review details",
-        400,
-        validation.error.flatten().fieldErrors
-      );
-    }
+    const validatedData = reviewCreateSchema.parse(body);
 
-    const { reviewerName, ...reviewData } = validation.data;
+    const { reviewerName, ...reviewData } = validatedData;
     const finalReviewerName =
       session?.name || reviewerName || "Verified Student";
     const userId = session?.userId || null;
@@ -33,11 +25,7 @@ export async function POST(req: NextRequest) {
     });
 
     return apiSuccess(result, "Rating & review submitted successfully", 201);
-  } catch (error: any) {
-    if (error.message === "COLLEGE_NOT_FOUND") {
-      return apiError("NOT_FOUND", "College not found", 404);
-    }
-    console.error("Error in POST /api/reviews:", error);
-    return apiError("INTERNAL_SERVER_ERROR", "Failed to submit review", 500);
+  } catch (error) {
+    return handleApiError(error, "Failed to submit review");
   }
 }
