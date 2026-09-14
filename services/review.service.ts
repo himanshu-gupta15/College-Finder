@@ -19,6 +19,19 @@ export class ReviewService {
       throw new Error("COLLEGE_NOT_FOUND");
     }
 
+    if (data.userId) {
+      const existing = await prisma.review.findFirst({
+        where: {
+          collegeId: data.collegeId,
+          userId: data.userId,
+        },
+      });
+
+      if (existing) {
+        throw new Error("ALREADY_REVIEWED");
+      }
+    }
+
     return reviewRepository.createReview(data);
   }
 

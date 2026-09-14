@@ -124,6 +124,7 @@ model Review {
   college         College  @relation(fields: [collegeId], references: [id], onDelete: Cascade)
   createdAt       DateTime @default(now())
 
+  @@unique([collegeId, userId])
   @@index([collegeId])
   @@index([rating])
 }

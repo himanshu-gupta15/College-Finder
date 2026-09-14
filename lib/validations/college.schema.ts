@@ -78,12 +78,43 @@ export const reviewCreateSchema = z.object({
     .number()
     .min(1, "Rating must be at least 1 star")
     .max(5, "Rating cannot exceed 5 stars"),
-  title: z.string().trim().min(3, "Title must be at least 3 characters"),
-  pros: z.string().trim().min(10, "Pros must be at least 10 characters"),
-  cons: z.string().trim().min(10, "Cons must be at least 10 characters"),
-  reviewerName: z.string().trim().min(2, "Reviewer name must be at least 2 characters").optional(),
-  courseName: z.string().trim().optional().nullable(),
-  batchYear: z.string().trim().optional().nullable(),
+  title: z
+    .string()
+    .trim()
+    .min(3, "Title must be at least 3 characters")
+    .max(120, "Title cannot exceed 120 characters"),
+  pros: z
+    .string()
+    .trim()
+    .min(10, "Pros must be at least 10 characters")
+    .max(2000, "Pros cannot exceed 2,000 characters"),
+  cons: z
+    .string()
+    .trim()
+    .min(10, "Cons must be at least 10 characters")
+    .max(2000, "Cons cannot exceed 2,000 characters"),
+  reviewerName: z
+    .string()
+    .trim()
+    .min(2, "Reviewer name must be at least 2 characters")
+    .max(60, "Reviewer name cannot exceed 60 characters")
+    .optional(),
+  courseName: z
+    .string()
+    .trim()
+    .max(100, "Course name cannot exceed 100 characters")
+    .optional()
+    .nullable(),
+  batchYear: z
+    .string()
+    .trim()
+    .regex(
+      /^(19[89]\d|20[0-3]\d)$/,
+      "Batch year must be a valid 4-digit graduation year between 1980 and 2039"
+    )
+    .optional()
+    .or(z.literal(""))
+    .nullable(),
 });
 
 export type ReviewCreateInput = z.infer<typeof reviewCreateSchema>;
