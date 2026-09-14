@@ -3,7 +3,7 @@
 import CollegeCard from "@/components/college/CollegeCard";
 import CollegeFilters from "@/components/college/CollegeFilters";
 import Pagination from "@/components/common/Pagination";
-import { CollegeCardSkeleton } from "@/components/common/Skeleton";
+import { CollegeCardSkeleton, CollegeListSkeleton } from "@/components/common/Skeleton";
 import { ArrowUpDown, Building, Filter, Search, SlidersHorizontal, X } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
@@ -234,7 +234,7 @@ function CollegeDiscoveryContent() {
 
 export default function CollegesPage() {
   return (
-    <Suspense fallback={<div className="p-8 text-center text-sm text-slate-500">Loading discovery engine...</div>}>
+    <Suspense fallback={<CollegeListSkeleton />}>
       <CollegeDiscoveryContent />
     </Suspense>
   );
